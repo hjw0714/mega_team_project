@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>게시글 상세보기</title>
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+
+  <style>
+    .comment-box {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .comment-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .comment-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+
+    .comment-footer a {
+      color: #6c757d;
+      text-decoration: none;
+    }
+
+    .profile-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .post-navigation a {
+      margin: 0 5px;
+    }
+  </style>
+</head>
+
+<body class="single-post-page">
+
+  <header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container position-relative d-flex align-items-center justify-content-between">
+
+      <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
+        <h1 class="sitename">장구 나눔/판매</h1>
+      </a>
+
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="index.html">홈</a></li>
+          <li><a href="about.html">소개</a></li>
+          <li><a href="contact.html">문의하기</a></li>
+        </ul>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
+
+      <div class="header-user d-flex align-items-center">
+        <a href="login.html" class="login-btn d-flex align-items-center">
+          <i class="bi bi-person-circle me-1"></i> 로그아웃
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="main">
+
+    <section id="post-detail" class="post-detail section">
+      <div class="container">
+        <div class="post-header mb-4">
+          <h2 class="mb-3">[판매] 중고 장구 판매합니다!</h2>
+          <div class="d-flex align-items-center mb-2">
+            <img src="assets/img/profile-default.jpg" alt="프로필 이미지" class="profile-img">
+            <span class="text-muted">홍길동</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">작성일: 2025-01-17</span>
+            <span class="text-muted">추천수: <span id="likeCount">0</span></span>
+          </div>
+          <div class="mt-2 text-muted">조회수: <span id="viewCount">0</span></div>
+        </div>
+
+        <div class="post-body mb-4">
+          <p>안녕하세요, 제가 사용하던 장구를 판매합니다. 상태는 양호하며, 초보자들에게 적합합니다.</p>
+          <p><strong>가격:</strong> 30,000원</p>
+          <p><strong>거래 지역:</strong> 서울 강남구</p>
+          <img src="assets/img/sample-drum.jpg" alt="중고 장구 이미지" class="img-fluid my-3">
+        </div>
+
+        <div class="post-footer d-flex justify-content-between mb-5">
+          <button id="likeButton" class="btn btn-outline-success"><i class="bi bi-hand-thumbs-up"></i> 추천</button>
+          <button class="btn btn-outline-danger"><i class="bi bi-flag"></i> 신고</button>
+        </div>
+
+        <div class="d-flex justify-content-center post-navigation mb-4">
+          <a href="previous-post.html" class="btn btn-outline-secondary">이전글</a>
+          <a href="board.html" class="btn btn-outline-secondary">전체 게시판</a>
+          <a href="next-post.html" class="btn btn-outline-secondary">다음글</a>
+        </div>
+
+        <hr>
+
+        <section id="comments" class="comments section">
+          <h3 class="mb-4">댓글</h3>
+
+          <div class="comment-box">
+            <div class="comment-header">김철수</div>
+            <div class="comment-body">장구 상태가 정말 좋아보이네요! 혹시 거래는 어디서 가능한가요?</div>
+            <div class="comment-footer">
+              <span class="text-muted">2025-01-17 14:35</span>
+              <a href="#">답글</a>
+            </div>
+          </div>
+
+          <div class="comment-box">
+            <div class="comment-header">박영희</div>
+            <div class="comment-body">제가 구매하고 싶습니다! 연락처를 알려주실 수 있나요?</div>
+            <div class="comment-footer">
+              <span class="text-muted">2025-01-17 15:20</span>
+              <a href="#">답글</a>
+            </div>
+          </div>
+
+          <form id="commentForm" class="mt-4">
+            <div class="form-group mb-3">
+              <label for="commentContent" class="form-label">댓글 작성</label>
+              <textarea id="commentContent" class="form-control" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">댓글 등록</button>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <script>
+      // 조회수 로직
+      function updateViewCount() {
+        const viewCountElement = document.getElementById('viewCount');
+        let viewCount = parseInt(localStorage.getItem('postViewCount')) || 0;
+        viewCount++;
+        localStorage.setItem('postViewCount', viewCount); // 로컬 저장소에 저장
+        viewCountElement.textContent = viewCount; // 화면에 업데이트
+      }
+
+      // 추천수 로직
+      function updateLikeCount() {
+        const likeButton = document.getElementById('likeButton');
+        const likeCountElement = document.getElementById('likeCount');
+        let likeCount = parseInt(localStorage.getItem('postLikeCount')) || 0;
+
+        likeButton.addEventListener('click', () => {
+          likeCount++;
+          localStorage.setItem('postLikeCount', likeCount);
+          likeCountElement.textContent = likeCount;
+        });
+      }
+
+      // 페이지 로드 시 조회수 및 추천수 업데이트
+      document.addEventListener('DOMContentLoaded', () => {
+        updateViewCount();
+        updateLikeCount();
+      });
+
+      // 댓글 작성 로직
+      const commentForm = document.getElementById('commentForm');
+      commentForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        alert("댓글이 성공적으로 등록되었습니다!");
+        // 댓글 저장 로직 추가 필요
+      });
+    </script>
+
+  </main>
+
+  <footer id="footer" class="footer">
+    <div class="container text-center">
+      <p>&copy; 2025 장구 나눔/판매. 모든 권리 보유.</p>
+    </div>
+  </footer>
+
+</body>
+
+</html>
