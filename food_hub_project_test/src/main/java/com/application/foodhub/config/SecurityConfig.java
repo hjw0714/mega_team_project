@@ -10,21 +10,17 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig{
+public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.disable())  // CORS 비활성화
+            .csrf(csrf -> csrf.disable())  // CSRF 비활성화
+            .formLogin(form -> form.disable())  // 폼 로그인 비활성화
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()));  // X-Frame-Options 비활성화
+
+        return http.build();
     }
-
-    @Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.cors().disable()			
-			.csrf().disable()			
-			.formLogin().disable()
-			.headers().frameOptions().disable();
- 
-		return http.build();
-	}
-    
 }
+
