@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.application.foodhub.bookmark.BookmarkDTO;
+import com.application.foodhub.bookmark.BookmarkService;
 import com.application.foodhub.comment.CommentService;
-import com.application.foodhub.post.PostDTO;
 import com.application.foodhub.post.PostService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,6 +45,9 @@ public class UserController {
 	
 	@Autowired
 	private CommentService commentService;
+	
+	@Autowired
+	private BookmarkService bookmarkService;
 	
 	@GetMapping("/login")	// 로그인
 	public String login() {
@@ -75,6 +78,25 @@ public class UserController {
 		return "foodhub/user/register";
 	}
 	
+	@PostMapping("/register")	//회원가입
+	@ResponseBody
+	public String register(@ModelAttribute UserDTO userDTO) {
+		
+		if (userDTO.getProfileOriginal() == null || userDTO.getProfileUUID() == null || userDTO.getProfileUUID().isEmpty()) {
+			
+		} 
+		
+		
+		userService.register(userDTO);
+		String jsScript = """
+				<script>
+					alert('회원가입 되었습니다.');
+					location.href = '/foodhub/user/login';
+				</script>""";
+		
+		return jsScript;	
+	}
+	
 	@PostMapping("/validId")	// 아이디 중복
 	@ResponseBody 
 	public String validId(@RequestParam("userId") String userId) {
@@ -93,69 +115,62 @@ public class UserController {
 		return userService.checkValidEmail(email);
 	}
 	
-	@PostMapping("/register")	//회원가입
-	@ResponseBody
-	public String register(@ModelAttribute UserDTO userDTO) {
-		userService.register(userDTO);
-		String jsScript = """
-				<script>
-					alert('회원가입 되었습니다.');
-					location.href = '/foodhub/user/login';
-				</script>""";
-			
-		return jsScript;	
-		}
 	
-	@GetMapping("/myPage")
-	public String myPage(Model model , HttpServletRequest request, 
-						@RequestParam(value = "postPage", defaultValue = "1") int postPage,
-						//@RequestParam(value = "bookmarkPage", defaultValue = "1") int bookmarkPage,
-						@RequestParam(value = "commentPage", defaultValue = "1") int commentPage,
-		    			@RequestParam(value = "size", defaultValue = "5") int size) {
-		
-		HttpSession session = request.getSession();
-		String userId = (String)session.getAttribute("userId");
-	      
-	    // 로그인한 유저가 쓴 전체 게시글 가져오기
-	    List<Map<String, Object>> allPosts = postService.myPostList(userId);
-	    
-	    // 게시글을 역순으로 정렬
-	    Collections.reverse(allPosts);
-	    
-	    int totalPosts = allPosts.size();
-	    int totalPostPages = (int) Math.ceil((double) totalPosts / size);
-	    
-	    // 페이지에 해당하는 게시글만 가져오기
-	    int startIndex = (postPage - 1) * size;
-	    int endIndex = Math.min(startIndex + size, totalPosts);
-	    List<Map<String, Object>> paginatedPosts = allPosts.subList(startIndex, endIndex);
-	    
-	    // 로그인한 유저가 작성한 전체 댓글 가져오기
-	    List<Map<String, Object>> allComments = commentService.myCommentList(userId);
-	    
-	    //댓글을 역순으로 정렬
-	    Collections.reverse(allComments);
-	    
-	    int totalComments = allComments.size();
-	    int totalCommentPages = (int) Math.ceil((double) totalComments / size);
 
-	    // 페이지에 해당하는 댓글만 가져오기
-	    int commentStartIndex = (commentPage - 1) * size;
-	    int commentEndIndex = Math.min(commentStartIndex + size, totalComments);
-	    List<Map<String, Object>> paginatedComments = allComments.subList(commentStartIndex, commentEndIndex);
-	      
-	    model.addAttribute("userDTO" , userService.getUserDetail(userId));    // 유저 정보
-	    //model.addAttribute("myBookmarkList" , bookmarkService.myBookmark(userId));   // 유저 북마크 리스트
-	    model.addAttribute("myCommentList" , paginatedComments); // 유저 댓글 리스트
-	    model.addAttribute("myPostList", paginatedPosts); // 유저 게시글 리스트
-	    model.addAttribute("currentPostPage", postPage);
-	    model.addAttribute("totalPostPages", totalPostPages);
-	    model.addAttribute("currentCommentPage", commentPage);
-	    model.addAttribute("totalCommentPages", totalCommentPages);
-	    model.addAttribute("totalCommentPages", totalCommentPages);
-	      
-	    return "foodhub/user/myPage";
-	}
+    @GetMapping("/myPage")
+    public String myPage(Model model, HttpServletRequest request,
+                         @RequestParam(value = "postPage", defaultValue = "1") int postPage,
+                         @RequestParam(value = "commentPage", defaultValue = "1") int commentPage,
+                         @RequestParam(value = "bookmarkPage", defaultValue = "1") int bookmarkPage,
+                         @RequestParam(value = "size", defaultValue = "5") int size) {
+
+        HttpSession session = request.getSession();
+        String userId = (String) session.getAttribute("userId");
+
+        if (userId == null) {
+            return "redirect:/foodhub/user/login"; // 세션 정보가 없으면 로그인 페이지로 이동
+        }
+
+        // 로그인한 유저가 쓴 전체 게시글 가져오기
+        List<Map<String, Object>> allPosts = postService.myPostList(userId);
+        Collections.reverse(allPosts);
+        int totalPosts = allPosts.size();
+        int totalPostPages = (int) Math.ceil((double) totalPosts / size);
+        int startIndex = (postPage - 1) * size;
+        int endIndex = Math.min(startIndex + size, totalPosts);
+        List<Map<String, Object>> paginatedPosts = allPosts.subList(startIndex, endIndex);
+
+        // 로그인한 유저가 작성한 전체 댓글 가져오기
+        List<Map<String, Object>> allComments = commentService.myCommentList(userId);
+        Collections.reverse(allComments);
+        int totalComments = allComments.size();
+        int totalCommentPages = (int) Math.ceil((double) totalComments / size);
+        int commentStartIndex = (commentPage - 1) * size;
+        int commentEndIndex = Math.min(commentStartIndex + size, totalComments);
+        List<Map<String, Object>> paginatedComments = allComments.subList(commentStartIndex, commentEndIndex);
+
+        model.addAttribute("userDTO", userService.getUserDetail(userId));
+        model.addAttribute("myCommentList", paginatedComments);
+        model.addAttribute("myPostList", paginatedPosts);
+        model.addAttribute("currentPostPage", postPage);
+        model.addAttribute("totalPostPages", totalPostPages);
+        model.addAttribute("currentCommentPage", commentPage);
+        model.addAttribute("totalCommentPages", totalCommentPages);
+        
+        // 로그인한 유저가 작성한 전체 북마크 가져오기
+        List<BookmarkDTO> bookmarks = bookmarkService.getBookmarksByUserId(userId);
+        int totalBookmarks = bookmarks.size();
+        int totalBookmarkPages = (int) Math.ceil((double) totalBookmarks / size);
+        int bookmarkStartIndex = (bookmarkPage - 1) * size;
+        int bookmarkEndIndex = Math.min(bookmarkStartIndex + size, totalBookmarks);
+        List<BookmarkDTO> paginatedBookmarks = bookmarks.subList(bookmarkStartIndex, bookmarkEndIndex); 
+        
+        model.addAttribute("bookmarks", paginatedBookmarks); // 현재 페이지의 북마크 리스트
+        model.addAttribute("currentBookmarkPage", bookmarkPage); // 현재 북마크 페이지
+        model.addAttribute("totalBookmarkPages", totalBookmarkPages); // 총 북마크 페이지 수
+
+        return "foodhub/user/myPage";
+    }
 
 	    
 	    

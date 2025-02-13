@@ -1,16 +1,12 @@
 package com.application.foodhub.post;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,13 +19,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.application.foodhub.bookmark.BookmarkService;
 import com.application.foodhub.comment.CommentService;
 import com.application.foodhub.fileUpload.FileUploadDTO;
 import com.application.foodhub.fileUpload.FileUploadService;
 import com.application.foodhub.postLike.PostLikeDTO;
 import com.application.foodhub.postLike.PostLikeService;
+import com.application.foodhub.postReport.PostReportDTO;
+import com.application.foodhub.postReport.PostReportService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -49,6 +47,12 @@ public class PostController {
 
 	@Autowired
 	private PostLikeService postLikeService;
+
+	@Autowired
+	private PostReportService postReportService;
+
+	@Autowired
+	private BookmarkService bookmarkService;
 
 	/**
 	 * 통합 게시판 목록 조회
@@ -156,7 +160,7 @@ public class PostController {
 		String jsScript = """
 				<script>
 					alert('커뮤니티 게시글이 작성 되었습니다.');
-					location.href = '/';
+					location.href = 'allPostList';
 				</script>""";
 
 		return jsScript;
@@ -207,7 +211,7 @@ public class PostController {
 		model.addAttribute("postMap", postService.getPostDetail(postId, false));
 		model.addAttribute("sessionNickname", sessionNickname);
 
-		return "redirect:/foodhub/post/deletePost";
+		return "foodhub/post/deletePost";
 	}
 
 	@PostMapping("/deletePost")
@@ -326,14 +330,80 @@ public class PostController {
 	}
 
 	@PostMapping("/postLike")
-	public int postLike(@RequestBody PostLikeDTO postLikeDTO) {
+	public ResponseEntity<Integer> postLike(@RequestBody PostLikeDTO postLikeDTO) {
+
 		long postId = postLikeDTO.getPostId();
 		String userId = postLikeDTO.getUserId();
+
+//	    System.out.println("postId : " + postId);
+//	    System.out.println("userId : " + userId);
 
 		postLikeService.togglePostLike(postId, userId);
 		int likeCount = postLikeService.getPostLikeCount(postId);
 
-
-		return likeCount;
+		return ResponseEntity.ok(likeCount);
 	}
+
+	@PostMapping("/report")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> report(@RequestBody PostReportDTO postReportDTO) {
+
+		long postId = postReportDTO.getPostId();
+		String userId = postReportDTO.getUserId();
+		String content = postReportDTO.getContent();
+
+//		System.out.println(postId);
+//		System.out.println(userId);
+//		System.out.println(content);
+
+		boolean reportSuccess = postReportService.reportPost(postId, userId, content);
+
+		Map<String, Object> response = new HashMap<>();
+
+		// 이미 신고한 경우
+		if (!reportSuccess) {
+			response.put("success", false);
+			response.put("message", "이미 신고한 게시글입니다.");
+			response.put("redirectUrl", "/foodhub/post/postDetail?postId=" + postReportDTO.getPostId());
+			return ResponseEntity.ok(response); // 🚨 클라이언트가 알 수 있도록 JSON 반환
+		} else {
+			// 신고 성공 시
+			response.put("success", true);
+			response.put("message", "게시글이 신고되었습니다.");
+			response.put("redirectUrl", "/foodhub/post/postDetail?postId=" + postReportDTO.getPostId());
+
+			return ResponseEntity.ok(response);
+		}
+
+	}
+
+	// 북마크
+	@PostMapping("/toggleBookmark")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> toggleBookmark(@RequestBody Map<String, Object> requestData,
+			HttpSession session) {
+		String userId = (String) session.getAttribute("userId");
+		Long postId = Long.valueOf(requestData.get("postId").toString());
+
+		boolean isBookmarked = bookmarkService.toggleBookmark(userId, postId);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("isBookmarked", isBookmarked);
+		response.put("message", isBookmarked ? "북마크가 추가되었습니다." : "북마크가 삭제되었습니다.");
+
+		return ResponseEntity.ok(response);
+	}
+
+	// 카테고리별 최신글 2개 뽑기
+	@PostMapping("/latestPosts")
+	public String getLatestPostsByCategory(@RequestParam("categoryId") int categoryId, Model model) {
+		
+		System.out.println("categoryId: " + categoryId);
+
+		List<Map<String, Object>> latestPosts = postService.getLatestPostsByCategoryId(categoryId);
+		model.addAttribute("latestPosts", latestPosts);
+		
+		return "foodhub/index/index";
+	}
+
 }
