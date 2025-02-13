@@ -109,8 +109,55 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getLatestPostsByCategoryId(int categoryId) {
+	public List<Map<String, Object>> getLatestPostsByCategoryId(long categoryId) {
 		return postDAO.getLatestPostsByCategoryId(categoryId);
 	}
+
+	@Override
+	public List<Map<String, Object>> searchPostsByTitle(String keyword, int pageSize, int offset) {
+	    return postDAO.searchPostsByTitle(keyword, pageSize, offset);
+	}
+
+	@Override
+	public long countPostsByTitle(String keyword) {
+	    return postDAO.countPostsByTitle(keyword);
+	}
+
+	@Override
+	public List<Map<String, Object>> searchPostsByTitleAndContent(String keyword, int pageSize, int offset) {
+	    return postDAO.searchPostsByTitleAndContent(keyword, pageSize, offset);
+	}
+
+	@Override
+	public long countPostsByTitleAndContent(String keyword) {
+	    return postDAO.countPostsByTitleAndContent(keyword);
+	}
+	
+	@Override
+	public String getCategoryNameById(Long categoryId) {
+	    return postDAO.getCategoryNameById(categoryId);
+	}
+	
+	@Override
+	public long countPostsByCategoryTitle(Long categoryId, String keyword) {
+	    return postDAO.countPostsByCategoryTitle(categoryId, keyword);
+	}
+
+	@Override
+	public long countPostsByCategoryTitleAndContent(Long categoryId, String keyword) {
+	    return postDAO.countPostsByCategoryTitleAndContent(categoryId, keyword);
+	}
+
+	@Override
+	public List<Map<String, Object>> searchPostsByCategoryTitle(Long categoryId, String keyword, int pageSize, int offset) {
+	    return postDAO.searchPostsByCategoryTitle(categoryId, keyword, pageSize, offset);
+	}
+
+	@Override
+	public List<Map<String, Object>> searchPostsByCategoryTitleAndContent(Long categoryId, String keyword, int pageSize, int offset) {
+	    return postDAO.searchPostsByCategoryTitleAndContent(categoryId, keyword, pageSize, offset);
+	}
+
+
 
 }

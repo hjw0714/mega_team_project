@@ -54,69 +54,180 @@ public class PostController {
 	@Autowired
 	private BookmarkService bookmarkService;
 
-	/**
-	 * 통합 게시판 목록 조회
-	 */
+	
 	@GetMapping("/allPostList")
-	public String allPostList(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
-		final int pageSize = 15;
-		long totalPosts = postService.getPostCnt();
+	public String allPostList(
+	        @RequestParam(name = "page", defaultValue = "1") int page,
+	        @RequestParam(name = "searchType", required = false) String searchType,
+	        @RequestParam(name = "keyword", required = false) String keyword,
+	        Model model) {
 
-		// 게시글이 없는 경우 최소한 1페이지는 유지
-		int maxPages = (int) Math.ceil((double) totalPosts / pageSize);
-		if (maxPages == 0) {
-			maxPages = 1;
-		}
+	    final int pageSize = 15; // 한 페이지당 게시글 개수
+	    final int pageGroupSize = 5; // 한 번에 보여줄 페이지 개수 (5개 단위)
+	    long totalPosts;
+	    List<Map<String, Object>> postList;
 
-		// 0페이지 방지: page 값이 1보다 작으면 1로 설정
-		if (page < 1) {
-			page = 1;
-		} else if (page > maxPages) {
-			page = maxPages;
-		}
+	    int offset = (page - 1) * pageSize;
 
-		int offset = (page - 1) * pageSize;
-		List<Map<String, Object>> postList = postService.getPostList(pageSize, offset);
+	    if (keyword != null && !keyword.isEmpty()) {
+	        if ("title".equals(searchType)) {
+	            totalPosts = postService.countPostsByTitle(keyword);
+	            postList = postService.searchPostsByTitle(keyword, pageSize, offset);
+	        } else if ("title_content".equals(searchType)) {
+	            totalPosts = postService.countPostsByTitleAndContent(keyword);
+	            postList = postService.searchPostsByTitleAndContent(keyword, pageSize, offset);
+	        } else {
+	            totalPosts = postService.getPostCnt();
+	            postList = postService.getPostList(pageSize, offset);
+	        }
+	    } else {
+	        totalPosts = postService.getPostCnt();
+	        postList = postService.getPostList(pageSize, offset);
+	    }
 
-		model.addAttribute("postListMap", postList);
-		model.addAttribute("page", page);
-		model.addAttribute("maxPages", maxPages);
-		model.addAttribute("postCnt", totalPosts);
+	    int maxPages = (int) Math.ceil((double) totalPosts / pageSize);
+	    if (maxPages == 0) {
+	        maxPages = 1;
+	    }
 
-		return "foodhub/post/allPostList";
+	    // 📌 5개 단위로 페이지네이션 설정
+	    int startPage = ((page - 1) / pageGroupSize) * pageGroupSize + 1;
+	    int endPage = Math.min(startPage + pageGroupSize - 1, maxPages);
+
+	    model.addAttribute("postListMap", postList);
+	    model.addAttribute("page", page);
+	    model.addAttribute("maxPages", maxPages);
+	    model.addAttribute("postCnt", totalPosts);
+	    model.addAttribute("searchType", searchType);
+	    model.addAttribute("keyword", keyword);
+	    model.addAttribute("startPage", startPage);
+	    model.addAttribute("endPage", endPage);
+
+	    return "foodhub/post/allPostList";
 	}
+
+
 
 	@GetMapping("/category/{categoryId}")
-	public String categoryPostList(@PathVariable("categoryId") Long categoryId,
-			@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
-		final int pageSize = 15;
-		long totalPosts = postService.getPostCntByCategory(categoryId);
+	public String categoryPostList(
+	        @PathVariable("categoryId") Long categoryId,
+	        @RequestParam(name = "page", defaultValue = "1") int page,
+	        @RequestParam(name = "searchType", required = false) String searchType,
+	        @RequestParam(name = "keyword", required = false) String keyword,
+	        Model model) {
 
-		// maxPages가 0이면 최소한 1페이지는 유지
+	    final int pageSize = 15;
+	    final int pageGroupSize = 5; // 📌 5개씩 페이지 그룹 설정
+	    long totalPosts;
+	    List<Map<String, Object>> postList;
+	    int offset = (page - 1) * pageSize;
+
+	    // ✅ 카테고리 이름 가져오기
+	    String categoryName = postService.getCategoryNameById(categoryId);
+	    if (categoryName == null) {
+	        categoryName = "알 수 없는";  // NULL 방지
+	    }
+
+	    if (keyword != null && !keyword.isEmpty()) {
+	        if ("title".equals(searchType)) {
+	            totalPosts = postService.countPostsByCategoryTitle(categoryId, keyword);
+	            postList = postService.searchPostsByCategoryTitle(categoryId, keyword, pageSize, offset);
+	        } else if ("title_content".equals(searchType)) {
+	            totalPosts = postService.countPostsByCategoryTitleAndContent(categoryId, keyword);
+	            postList = postService.searchPostsByCategoryTitleAndContent(categoryId, keyword, pageSize, offset);
+	        } else {
+	            totalPosts = postService.getPostCntByCategory(categoryId);
+	            postList = postService.getPostListByCategory(categoryId, pageSize, offset);
+	        }
+	    } else {
+	        totalPosts = postService.getPostCntByCategory(categoryId);
+	        postList = postService.getPostListByCategory(categoryId, pageSize, offset);
+	    }
+
+	    int maxPages = (int) Math.ceil((double) totalPosts / pageSize);
+	    if (maxPages == 0) {
+	        maxPages = 1;
+	    }
+
+	    // 📌 5개 단위로 페이지네이션 범위 설정
+	    int startPage = ((page - 1) / pageGroupSize) * pageGroupSize + 1;
+	    int endPage = Math.min(startPage + pageGroupSize - 1, maxPages);
+
+	    // ✅ 모델에 추가
+	    model.addAttribute("categoryName", categoryName);
+	    model.addAttribute("categoryId", categoryId);
+	    model.addAttribute("page", page);
+	    model.addAttribute("maxPages", maxPages);
+	    model.addAttribute("startPage", startPage);
+	    model.addAttribute("endPage", endPage);
+	    model.addAttribute("searchType", searchType);
+	    model.addAttribute("keyword", keyword);
+	    model.addAttribute("postListMap", postList);
+
+	    return "foodhub/post/categoryPostList";
+	}
+	
+	/*
+	@GetMapping("/category/{categoryId}/subcate/{subCateId}")
+	public String categoryPostList(
+			@PathVariable("categoryId") Long categoryId,
+			@RequestParam(name = "page", defaultValue = "1") int page,
+			@RequestParam(name = "searchType", required = false) String searchType,
+			@RequestParam(name = "keyword", required = false) String keyword,
+			Model model) {
+		
+		final int pageSize = 15;
+		final int pageGroupSize = 5; // 📌 5개씩 페이지 그룹 설정
+		long totalPosts;
+		List<Map<String, Object>> postList;
+		int offset = (page - 1) * pageSize;
+		
+		// ✅ 카테고리 이름 가져오기
+		String categoryName = postService.getCategoryNameById(categoryId);
+		if (categoryName == null) {
+			categoryName = "알 수 없는";  // NULL 방지
+		}
+		
+		if (keyword != null && !keyword.isEmpty()) {
+			if ("title".equals(searchType)) {
+				totalPosts = postService.countPostsByCategoryTitle(categoryId, keyword);
+				postList = postService.searchPostsByCategoryTitle(categoryId, keyword, pageSize, offset);
+			} else if ("title_content".equals(searchType)) {
+				totalPosts = postService.countPostsByCategoryTitleAndContent(categoryId, keyword);
+				postList = postService.searchPostsByCategoryTitleAndContent(categoryId, keyword, pageSize, offset);
+			} else {
+				totalPosts = postService.getPostCntByCategory(categoryId);
+				postList = postService.getPostListByCategory(categoryId, pageSize, offset);
+			}
+		} else {
+			totalPosts = postService.getPostCntByCategory(categoryId);
+			postList = postService.getPostListByCategory(categoryId, pageSize, offset);
+		}
+		
 		int maxPages = (int) Math.ceil((double) totalPosts / pageSize);
 		if (maxPages == 0) {
 			maxPages = 1;
 		}
-
-		// 페이지 번호 검증 (0 이하인 경우 1로 설정)
-		if (page < 1) {
-			page = 1;
-		} else if (page > maxPages) {
-			page = maxPages;
-		}
-
-		int offset = (page - 1) * pageSize;
-		List<Map<String, Object>> postList = postService.getPostListByCategory(categoryId, pageSize, offset);
-		String categoryName = postService.getCategoryName(categoryId);
-
-		model.addAttribute("postListMap", postList);
-		model.addAttribute("categoryId", categoryId);
+		
+		// 📌 5개 단위로 페이지네이션 범위 설정
+		int startPage = ((page - 1) / pageGroupSize) * pageGroupSize + 1;
+		int endPage = Math.min(startPage + pageGroupSize - 1, maxPages);
+		
+		// ✅ 모델에 추가
 		model.addAttribute("categoryName", categoryName);
+		model.addAttribute("categoryId", categoryId);
 		model.addAttribute("page", page);
 		model.addAttribute("maxPages", maxPages);
-
+		model.addAttribute("startPage", startPage);
+		model.addAttribute("endPage", endPage);
+		model.addAttribute("searchType", searchType);
+		model.addAttribute("keyword", keyword);
+		model.addAttribute("postListMap", postList);
+		
 		return "foodhub/post/categoryPostList";
 	}
+
+	*/
 
 	@GetMapping("/createPost")
 	public String createPost(HttpServletRequest request) {
@@ -171,7 +282,8 @@ public class PostController {
 	 */
 	@GetMapping("/postDetail")
 	public String postDetail(Model model,
-			@RequestParam(value = "postId", required = false, defaultValue = "1") long postId) {
+							@RequestParam(value = "postId", required = false, defaultValue = "1") long postId,
+							HttpSession session) {
 
 		// 게시글 상세 정보 가져오기
 		Map<String, Object> postMap = postService.getPostDetail(postId, true);
@@ -190,6 +302,16 @@ public class PostController {
 		Long nextPostId = postService.getNextPostId(postId, categoryId);
 		model.addAttribute("prevPostId", prevPostId);
 		model.addAttribute("nextPostId", nextPostId);
+		
+		// 로그인한 사용자 ID 가져오기
+	    String userId = (String) session.getAttribute("userId");
+	    
+	    // 북마크 여부 확인
+	    boolean isBookmarked = false;
+	    if (userId != null) {
+	        isBookmarked = bookmarkService.isBookmarked(userId, postId);
+	    }
+	    model.addAttribute("isBookmarked", isBookmarked);
 
 		return "foodhub/post/postDetail";
 	}
@@ -394,16 +516,6 @@ public class PostController {
 		return ResponseEntity.ok(response);
 	}
 
-	// 카테고리별 최신글 2개 뽑기
-	@PostMapping("/latestPosts")
-	public String getLatestPostsByCategory(@RequestParam("categoryId") int categoryId, Model model) {
-		
-		System.out.println("categoryId: " + categoryId);
 
-		List<Map<String, Object>> latestPosts = postService.getLatestPostsByCategoryId(categoryId);
-		model.addAttribute("latestPosts", latestPosts);
-		
-		return "foodhub/index/index";
-	}
 
 }
