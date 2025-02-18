@@ -11,66 +11,12 @@
    .cke_notification {
        display: none !important; /* 경고 메시지 숨김 */
    }
-   
-   /* ✅ 파일 업로드 박스 스타일 */
-	.file-upload-box {
-	    border: 1px solid #ccc;
-	    border-radius: 5px;
-	    padding: 10px;
-	    background: #f8f9fa;
-	    display: flex;
-	    flex-direction: column;
-	    gap: 10px;
-	}
-	
-	/* ✅ 기존 파일 리스트 컨테이너 */
-	.file-list-container {
-	    display: flex;
-	    flex-direction: column;
-	    gap: 5px;
-	}
-	
-	/* ✅ 기존 파일 목록 스타일 */
-	.file-list {
-	    list-style: none;
-	    padding: 0;
-	    margin: 0;
-	}
-	
-	/* ✅ 기존 파일 개별 항목 디자인 */
-	.file-item {
-	    display: flex;
-	    align-items: center;
-	    justify-content: space-between;
-	    padding: 8px 12px;
-	    background: white;
-	    border: 1px solid #ddd;
-	    border-radius: 4px;
-	}
-	
-	/* ✅ 파일명 스타일 */
-	.file-link {
-	    text-decoration: none;
-	    color: #6c757d;
-	    font-weight: bold;
-	}
-	
-	/* ✅ 삭제 체크박스 스타일 */
-	.delete-label {
-	    font-size: 0.9rem;
-	    color: #dc3545;
-	    cursor: pointer;
-	    display: flex;
-	    align-items: center;
-	    gap: 5px;
-	}
-
 </style>
 <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
 	$().ready(function() {
-	    function toggleSubCategory() {
-	        let categoryId = $("#categoryId").val();
+		$("#categoryId").change(function() {
+			let categoryId = $("#categoryId").val();
 	        let $subCategoryContainer = $(".subCategoryContainer");
 	        let $subCateId = $("#subCateId");
 
@@ -82,14 +28,9 @@
 	        } else {
 	            $subCategoryContainer.show();
 	            $subCateId.find("option").hide().filter("[value=''], [data-category='" + categoryId + "']").show();
-	            $subCateId.val(selectedSubCateId); // 기존 선택값 유지
+	            $subCateId.val(""); // 카테고리 id 변경하면 <option value="">말머리를 선택하세요</option> 으로 자동 초기화
 	        }
-	    }
-
-	    toggleSubCategory(); // 초기 실행
-	    $("#categoryId").change(toggleSubCategory); // 변경 이벤트 핸들링
-	    
-	    
+		});
 	    
 	});
 	

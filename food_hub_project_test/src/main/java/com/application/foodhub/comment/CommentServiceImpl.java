@@ -42,14 +42,14 @@ public class CommentServiceImpl implements CommentService {
 	
 	// 댓글 추가 (원댓글 또는 대댓글)
 	@Override
-	public void insertComment(Map<String, Object> params) {
-		commentDAO.insertComment(params);
+	public void insertComment(CommentDTO commentDTO) {
+		commentDAO.insertComment(commentDTO);
 	}
 
 	// 댓글 수정
 	@Override
-	public void updateComment(Map<String, Object> params) {
-		commentDAO.updateComment(params);
+	public void updateComment(CommentDTO commentDTO) {
+		commentDAO.updateComment(commentDTO);
 	}
 
 	// 댓글 삭제 (상태 변경)
@@ -77,28 +77,7 @@ public class CommentServiceImpl implements CommentService {
 		return commentDAO.myCommentList(userId);
 	}
 	
-	 // ✅ 추가된 메서드
-    @Override
-    public int getCommentLikeCount(Long commentId) {
-        return commentDAO.getCommentLikeCount(commentId);
-    }
-
-    @Override
-    public boolean toggleCommentLike(Long commentId, String userId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("commentId", commentId);
-        params.put("userId", userId);
-
-        int likeExists = commentDAO.checkUserLikedComment(params);
-
-        if (likeExists > 0) {
-            commentDAO.deleteCommentLike(params);
-            return false; // 추천 취소됨
-        } else {
-            commentDAO.insertCommentLike(params);
-            return true; // 추천 추가됨
-        }
-    }
+   
     
     @Override
     public boolean isCommentDeleted(long commentId) {

@@ -1,5 +1,6 @@
 package com.application.foodhub.comment;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,7 +8,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,9 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.application.foodhub.commentLike.CommentLikeDTO;
+import com.application.foodhub.commentLike.CommentLikeService;
 import com.application.foodhub.commentReport.CommentReportDTO;
 import com.application.foodhub.commentReport.CommentReportService;
 import com.application.foodhub.user.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/comments")
@@ -28,6 +36,9 @@ public class CommentController {
 
 	@Autowired
 	private CommentService commentService;
+	
+	@Autowired
+	private CommentLikeService commentLikeService;
 	
 	@Autowired
 	private CommentReportService commentReportService;
@@ -55,27 +66,20 @@ public class CommentController {
 	// 댓글 추가 (원댓글 또는 대댓글)
 	@PostMapping("/add")
 	@ResponseBody
-	public CommentDTO insertComment(@RequestParam("postId") Long postId, @RequestParam("userId") String userId,
-			@RequestParam(value = "parentId", required = false) Long parentId,
-			@RequestParam("content") String content) {
-		Map<String, Object> params = new HashMap<>();
-		params.put("postId", postId);
-		params.put("userId", userId);
-		params.put("parentId", parentId);
-		params.put("content", content);
+	public CommentDTO insertComment(@ModelAttribute CommentDTO commentDTO) {
 
-		commentService.insertComment(params);
+		commentService.insertComment(commentDTO);
 
 		// ✅ 방금 등록한 댓글 정보 다시 가져오기 (프로필 이미지 포함)
-		CommentDTO newComment = commentService.getLastInsertedComment(postId, userId);
+		CommentDTO newComment = commentService.getLastInsertedComment(commentDTO.getPostId() , commentDTO.getUserId());
 		return newComment;
 	}
 
 	@PostMapping("/update")
 	@ResponseBody
-	public String updateComment(@RequestParam("commentId") Long commentId, @RequestParam("content") String content,
-			@RequestParam("userId") String userId // 현재 로그인한 사용자 ID 추가
-	) {
+	public String updateComment(@RequestParam("commentId") long commentId ,@ModelAttribute CommentDTO commentDTO , HttpSession session) {
+		
+		String userId = (String) session.getAttribute("userId");
 		CommentDTO comment = commentService.getCommentById(commentId);
 
 		if (comment == null) {
@@ -86,11 +90,8 @@ public class CommentController {
 			return "본인이 작성한 댓글만 수정할 수 있습니다.";
 		}
 
-		Map<String, Object> params = new HashMap<>();
-		params.put("commentId", commentId);
-		params.put("content", content);
 
-		commentService.updateComment(params);
+		commentService.updateComment(commentDTO);
 		return "댓글이 성공적으로 수정되었습니다.";
 	}
 
@@ -118,43 +119,27 @@ public class CommentController {
 	
 	@PostMapping("/like")
     @ResponseBody
-    public Map<String, Object> toggleCommentLike(@RequestParam("commentId") Long commentId,
+    public CommentLikeDTO toggleCommentLike(@RequestParam("commentId") Long commentId,
                                                  @RequestParam("userId") String userId) {
-        boolean liked = commentService.toggleCommentLike(commentId, userId);
-        int likeCount = commentService.getCommentLikeCount(commentId);
+        CommentLikeDTO liked = commentLikeService.toggleCommentLike(commentId, userId);
+        int likeCount = commentLikeService.getCommentLikeCount(commentId);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("liked", liked);
-        response.put("likeCount", likeCount);
+        CommentLikeDTO response = new CommentLikeDTO();
+        response.setCommentId(commentId);
+        response.setUserId(userId);
+        response.setLiked(true); 
+        response.setLikeCount(likeCount); 
+        response.setSuccess(true);
+        
         return response;
     }
 	
 	@PostMapping("/report")
 	@ResponseBody
-	public ResponseEntity<Map<String, Object>> report(@RequestBody CommentReportDTO commentReportDTO) {
-		long commentId = commentReportDTO.getCommentId();
-		String userId = commentReportDTO.getUserId();
-		String content = commentReportDTO.getContent();
-		
-		boolean reportSuccess = commentReportService.reportComment(commentId, userId, content);
-		
-		Map<String, Object> response = new HashMap<>();
-		
-		if (!reportSuccess) {
-			response.put("success", false);
-			response.put("message", "이미 신고한 댓글입니다.");
-			response.put("redirectUrl", "/foodhub/post/postDetail?postId=" + commentReportDTO.getCommentId());
-			return ResponseEntity.ok(response); 
-		} else {
-			// 신고 성공 시
-			response.put("success", true);
-			response.put("message", "댓글이 신고되었습니다.");
-			response.put("redirectUrl", "/foodhub/post/postDetail?postId=" + commentReportDTO.getCommentId());
-
-			return ResponseEntity.ok(response);
-		}
+	public CommentReportDTO report(@RequestBody CommentReportDTO commentReportDTO) {
+	    return commentReportService.reportComment(commentReportDTO);
 	}
+
 	
 
 }

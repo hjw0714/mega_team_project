@@ -7,147 +7,48 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>카테고리별 게시판</title>
-<style>
-.search-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    gap: 10px;
-}
-
-.search-box {
-    display: flex;
-    align-items: center;
-    border: 2px solid #0056b3;
-    border-radius: 5px;
-    overflow: hidden;
-    width: 550px;
-    background-color: white;
-}
-
-.search-box input {
-    border: none;
-    padding: 10px;
-    width: 100%;
-    outline: none;
-}
-
-.search-box select {
-    border: none;
-    background-color: #f8f9fa;
-    padding: 10px;
-    font-size: 14px;
-    outline: none;
-    border-right: 1px solid #ddd;
-}
-
-.search-box button {
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.search-box button:hover {
-    background-color: #004494;
-}
-	
-	
-.btn-custom {
-    background-color: white;
-    color: #0056b3;
-    border: 2px solid #0056b3;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.btn-custom:hover {
-    background-color: #0056b3;
-    color: white;
-}
-
-.post-card {
-    background-color: #ffffff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-    border-left: 4px solid #0056b3;
-    transition: transform 0.2s;
-	white-space: normal; /* 텍스트가 자동으로 줄 바꿈되도록 설정 */
-	word-wrap: break-word; /* 긴 단어를 강제로 줄 바꿈 */
-	overflow-wrap: break-word; /* 최신 브라우저 호환성을 위해 사용 */
-}
-
-.post-card:hover {
-    transform: scale(1.02);
-}
-
-.post-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.pagination a {
-    padding: 8px 12px;
-    margin: 0 5px;
-    border: 2px solid #0056b3;
-    border-radius: 4px;
-    text-decoration: none;
-    color: #0056b3;
-    background-color: white;
-    transition: 0.3s;
-}
-
-.pagination a.active, .pagination a:hover {
-    background-color: #0056b3;
-    color: white;
-}
-</style>
-<script>
+<script> 
 document.addEventListener("DOMContentLoaded", function () {
     function searchPosts() {
         let searchType = document.getElementById("searchType").value;
         let keyword = document.getElementById("searchKeyword").value.trim();
-        let categoryId = document.getElementById("categoryId").value;
-
-        if (!categoryId) {
-            alert("카테고리 ID가 올바르지 않습니다.");
-            return;
-        }
+        let categoryId = document.getElementById("categoryId") ? document.getElementById("categoryId").value : null;
+        let subCateId = document.getElementById("subCateId") ? document.getElementById("subCateId").value : null;
+        let orderType = new URLSearchParams(window.location.search).get("orderType") || "newest"; // orderType 유지
 
         if (keyword === "") {
             alert("검색어를 입력하세요.");
             return;
         }
 
-        let url = `/foodhub/post/category/${categoryId}?page=1&searchType=${searchType}&keyword=${encodeURIComponent(keyword)}`;
+        let url = `/foodhub/post/posts?page=1&searchType=${searchType}&keyword=${encodeURIComponent(keyword)}`;
+
+        if (categoryId) {
+            url += `&categoryId=${categoryId}`;
+        }
+
+        if (subCateId) {
+            url += `&subCateId=${subCateId}`;
+        }
+
+        if (orderType) {
+            url += `&orderType=${orderType}`;
+        }
+
         window.location.href = url;
     }
 
-    // 검색 버튼 클릭 이벤트 추가
+    // ✅ 검색 버튼 클릭 이벤트 추가
     document.getElementById("searchBtn").addEventListener("click", searchPosts);
+    
+    // ✅ 엔터키 입력 시 검색 실행
     document.getElementById("searchKeyword").addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             searchPosts();
         }
     });
 
-    // 페이지 로드 시 검색어 유지
+    // ✅ 페이지 로드 시 검색어 유지
     const urlParams = new URLSearchParams(window.location.search);
     const searchType = urlParams.get("searchType");
     const keyword = urlParams.get("keyword");
@@ -157,6 +58,121 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 </script>
+<style>
+.btn-custom {
+	background-color: white;
+	color: #0056b3;
+	border: 2px solid #0056b3;
+	padding: 10px 15px;
+	border-radius: 5px;
+	font-weight: bold;
+	transition: all 0.3s;
+}
+
+.btn-custom:hover {
+	background-color: #0056b3;
+	color: white;
+}
+
+.post-card {
+	background-color: #ffffff;
+	padding: 15px;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	margin-bottom: 15px;
+	border-left: 4px solid #0056b3;
+	transition: transform 0.2s;
+}
+
+.post-card:hover {
+	transform: scale(1.02);
+}
+
+.post-title {
+	font-size: 1.3rem;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 5px;
+	white-space: normal; /* 텍스트가 자동으로 줄 바꿈되도록 설정 */
+	word-wrap: break-word; /* 긴 단어를 강제로 줄 바꿈 */
+	overflow-wrap: break-word; /* 최신 브라우저 호환성을 위해 사용 */
+}
+
+.post-meta {
+	font-size: 0.9rem;
+	color: #6c757d;
+}
+
+.pagination {
+	display: flex;
+	justify-content: center;
+	margin-top: 20px;
+}
+
+.pagination a {
+	padding: 8px 12px;
+	margin: 0 5px;
+	border: 2px solid #0056b3;
+	border-radius: 4px;
+	text-decoration: none;
+	color: #0056b3;
+	background-color: white;
+	transition: 0.3s;
+}
+
+.pagination a.active, .pagination a:hover {
+	background-color: #0056b3;
+	color: white;
+}
+
+.search-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	gap: 10px;
+}
+
+.search-box {
+	display: flex;
+	align-items: center;
+	border: 2px solid #0056b3;
+	border-radius: 5px;
+	overflow: hidden;
+	width: 550px;
+	background-color: white;
+}
+
+.search-box input {
+	border: none;
+	padding: 10px;
+	width: 100%;
+	outline: none;
+}
+
+.search-box select {
+	border: none;
+	background-color: #f8f9fa;
+	padding: 10px;
+	font-size: 14px;
+	outline: none;
+	border-right: 1px solid #ddd;
+}
+
+.search-box button {
+	background-color: #0056b3;
+	color: white;
+	border: none;
+	padding: 10px 15px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+
+.search-box button:hover {
+	background-color: #004494;
+}
+</style>
 </head>
 
 <body class="board-page">
@@ -195,25 +211,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
               <div class="pagination" th:if="${maxPages > 1}">
 			    <!-- 처음 페이지로 이동 -->
-			    <a th:href="@{/foodhub/post/category/{categoryId}(categoryId=${categoryId}, page=1, searchType=${param.searchType}, keyword=${param.keyword})}"
+			    <a th:href="@{/foodhub/post/posts(page=1, orderType=${orderType}, categoryId=${categoryId}, subCateId=${subCateId}, searchType=${searchType}, keyword=${keyword})}"
 			       th:if="${page > 1}">&laquo; 첫 페이지</a>
 			
 			    <!-- 이전 페이지 그룹으로 이동 -->
-			    <a th:href="@{/foodhub/post/category/{categoryId}(categoryId=${categoryId}, page=${startPage - 1}, searchType=${param.searchType}, keyword=${param.keyword})}"
+			    <a th:href="@{/foodhub/post/posts(page=${startPage - 1}, orderType=${orderType}, categoryId=${categoryId}, subCateId=${subCateId}, searchType=${searchType}, keyword=${keyword})}"
 			       th:if="${startPage > 1}">&lt;</a>
 			
 			    <!-- 현재 페이지 그룹 내 페이지들 표시 (5개 단위) -->
 			    <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
-			        <a th:href="@{/foodhub/post/category/{categoryId}(categoryId=${categoryId}, page=${i}, searchType=${param.searchType}, keyword=${param.keyword})}"
+			        <a th:href="@{/foodhub/post/posts(page=${i}, orderType=${orderType}, categoryId=${categoryId}, subCateId=${subCateId}, searchType=${searchType}, keyword=${keyword})}"
 			           th:text="${i}" th:classappend="${i == page} ? 'active' : ''"></a>
 			    </th:block>
 			
 			    <!-- 다음 페이지 그룹으로 이동 -->
-			    <a th:href="@{/foodhub/post/category/{categoryId}(categoryId=${categoryId}, page=${endPage + 1}, searchType=${param.searchType}, keyword=${param.keyword})}"
+			    <a th:href="@{/foodhub/post/posts(page=${endPage + 1}, orderType=${orderType}, categoryId=${categoryId}, subCateId=${subCateId}, searchType=${searchType}, keyword=${keyword})}"
 			       th:if="${endPage < maxPages}">&gt;</a>
 			
 			    <!-- 마지막 페이지로 이동 -->
-			    <a th:href="@{/foodhub/post/category/{categoryId}(categoryId=${categoryId}, page=${maxPages}, searchType=${param.searchType}, keyword=${param.keyword})}"
+			    <a th:href="@{/foodhub/post/posts(page=${maxPages}, orderType=${orderType}, categoryId=${categoryId}, subCateId=${subCateId}, searchType=${searchType}, keyword=${keyword})}"
 			       th:if="${page < maxPages}">마지막 페이지 &raquo;</a>
 			</div>
 

@@ -11,9 +11,9 @@ public interface CommentService {
 
 	public List<CommentDTO> getChildComments(Long parentId ,String userId);
 
-	public void insertComment(Map<String, Object> params);
+	public void insertComment(CommentDTO commentDTO);
 
-	public void updateComment(Map<String, Object> params);
+	public void updateComment(CommentDTO commentDTO);
 
 	public void deleteComment(Long commentId);
 
@@ -23,13 +23,12 @@ public interface CommentService {
 
 	public List<Map<String, Object>> myCommentList(String userId); // 해당 유저가 쓴 댓글 불러오기
 
-	// ✅ 추가된 메서드
-	public int getCommentLikeCount(Long commentId);
-    public boolean toggleCommentLike(Long commentId, String userId);
+	
 
     public boolean isCommentDeleted(long commentId);
 
     public void markCommentsAsDeletedByPostId(long postId);
+
 
 	
 }
