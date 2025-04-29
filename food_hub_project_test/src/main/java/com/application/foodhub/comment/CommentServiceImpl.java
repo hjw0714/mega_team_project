@@ -12,7 +12,7 @@ public class CommentServiceImpl implements CommentService {
 
 	@Autowired
 	private CommentDAO commentDAO;
-
+	
 	// 특정 게시글의 모든 댓글 조회 (원댓글 + 대댓글 포함)
 	@Override
 	public List<CommentDTO> getCommentsByPostId(Long postId) {
@@ -44,6 +44,8 @@ public class CommentServiceImpl implements CommentService {
 	@Override
 	public void insertComment(CommentDTO commentDTO) {
 		commentDAO.insertComment(commentDTO);
+		
+		
 	}
 
 	// 댓글 수정

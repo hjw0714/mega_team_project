@@ -4,8 +4,6 @@ import java.util.Date;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.Data;
 
 @Data
@@ -21,10 +19,9 @@ public class PostDTO {
     private String content;
     private Long viewCnt;
     private String status;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
+    @DateTimeFormat(pattern="yyyy-MM-dd-hh-mm")
     private Date createdAt;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
+    @DateTimeFormat(pattern="yyyy-MM-dd-hh-mm")
     private Date updatedAt;
     
     

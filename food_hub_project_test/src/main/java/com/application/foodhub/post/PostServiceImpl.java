@@ -1,5 +1,7 @@
 package com.application.foodhub.post;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +22,7 @@ public class PostServiceImpl implements PostService {
 	
 	@Autowired
 	private CommentService commentService;
+	
 
 	
 	@Override
@@ -50,6 +53,11 @@ public class PostServiceImpl implements PostService {
 	@Override
 	public Long createPost(PostDTO postDTO) {
 		postDAO.createPost(postDTO);
+		
+		int categoryId = 4;
+		int postCategoryId = postDTO.getCategoryId().intValue() + 5;
+		String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		
 		return postDTO.getPostId();
 	}
 

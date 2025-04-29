@@ -13,7 +13,7 @@ public class CommentReportServiceImpl implements CommentReportService{
 	
 	@Autowired
 	private CommentDAO commentDAO;
-
+	
 	@Override
 	public CommentReportDTO reportComment(CommentReportDTO commentReportDTO) {
 	    long commentId = commentReportDTO.getCommentId();
@@ -32,6 +32,8 @@ public class CommentReportServiceImpl implements CommentReportService{
 	        // ✅ 신고 성공
 	        commentReportDAO.reportComment(commentId, userId, content);
 	        commentReportDTO.setSuccess(true);
+	        
+	        
 	        commentReportDTO.setMessage("댓글이 신고되었습니다.");
 	    }
 

@@ -2,6 +2,8 @@ package com.application.foodhub.user;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -22,7 +24,7 @@ public class UserServiceImpl implements UserService {
 	private UserDAO userDAO;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
+	
 	@Override	// 회원 가입
 	public void register(UserDTO userDTO) {
 		
@@ -32,8 +34,14 @@ public class UserServiceImpl implements UserService {
 			userDTO.setSmsYn("N");
 
 		userDTO.setPasswd(passwordEncoder.encode(userDTO.getPasswd()));
-		
+		userDTO.setStatus("ACTIVE");
 		userDAO.register(userDTO);
+		
+		int totalCategoryId = 3;
+		int joinCategoryId = 1;
+		
+		String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		
 	}
 
 	@Override // 아이디 중복확인
@@ -72,13 +80,22 @@ public class UserServiceImpl implements UserService {
 
 		// System.out.println("입력된 userId: " + userDTO.getUserId());
 
-		String encodedPasswd = userDAO.getEncodedPasswd(userDTO.getUserId());
+		UserDTO dbUser = userDAO.findUserForLogin(userDTO.getUserId());
 
-		if (passwordEncoder.matches(userDTO.getPasswd(), encodedPasswd)) {
-			return true;
-		}
+	    // 유저가 존재하지 않거나, 삭제된 상태이면 로그인 실패
+	    if (dbUser == null || !"ACTIVE".equals(dbUser.getStatus())) {
+	        return false;
+	    }
 
-		return false;
+	    return passwordEncoder.matches(userDTO.getPasswd(), dbUser.getPasswd());
+	    
+		//String encodedPasswd = userDAO.getEncodedPasswd(userDTO.getUserId());
+
+		//if (passwordEncoder.matches(userDTO.getPasswd(), encodedPasswd)) {
+		//	return true;
+		//}
+
+		//return false;
 	}
 
 	@Override	// 유저 정보 상세 조회
@@ -124,9 +141,13 @@ public class UserServiceImpl implements UserService {
 	@Transactional	// 유저 탈퇴
 	public void deleteUser(String userId) {
 
-		String deleteProfile = userDAO.getDeleteUserProfile(userId);
-		new File(fileRepositoryPath + deleteProfile).delete();
-		userDAO.deleteUser(userId);
+		//String deleteProfile = userDAO.getDeleteUserProfile(userId);
+		//new File(fileRepositoryPath + deleteProfile).delete();
+		userDAO.softDeleteUser(userId);
+		
+		String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		
+		
 	}
 
 	@Override	// 아이디 찾기
@@ -182,5 +203,12 @@ public class UserServiceImpl implements UserService {
 	public String findNicknameByUserId(String userId) {
 		return userDAO.findNicknameByUserId(userId); 
 	}
+
+	
+	
+	 @Override
+	    public UserDTO findByNickname(String nickname) {
+	        return userDAO.findByNickname(nickname);
+	    }
 
 }
