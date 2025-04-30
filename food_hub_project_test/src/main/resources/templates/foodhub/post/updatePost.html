@@ -162,10 +162,21 @@
                     <br/>
                     <div class="form-group mb-4">
                         <label>내용</label>
-                       <textarea id="content" name="content" class="form-control" rows="10" th:utext="${postMap.content}" oninput="checkContentLength()"></textarea>
+                       <textarea id="content" name="content" class="form-control" rows="10"></textarea>
+						<input type="hidden" id="rawContent" th:value="${postMap.content}" />
                         <script>
-                            CKEDITOR.replace("content");
-                        </script>
+						  CKEDITOR.replace("content");
+						
+						  CKEDITOR.on("instanceReady", function (event) {
+						    const editor = event.editor;
+						    const raw = document.getElementById("rawContent").value;
+						
+						    // 🔽 줄바꿈을 <br>로 변환
+						    const formatted = raw.replace(/\n/g, "<br>");
+						
+						    editor.setData(formatted);
+						  });
+						</script>
                         <span id="contentWarning" style="color: red; font-size: 0.9rem; display: none;">
 						    본문은 2500자 이하로 작성해주세요.</span>
                     </div>

@@ -657,7 +657,7 @@
 			<input type="hidden" id="categoryId" th:value="${postMap.categoryId}"/>
 				<!-- 게시글 제목 -->
 				<div class="post-header mb-4">
-					<h2 class="mb-3" th:utext="|[${postMap['subCateNm']}] ${postMap['title']}|"></h2>
+					<h2 class="mb-3" th:text="|[${postMap['subCateNm']}] ${postMap['title']}|"></h2>
 				
 					<!-- 작성자 정보 박스 -->
 					<div class="post-meta">
@@ -685,7 +685,7 @@
 				<!-- 본문 내용 -->
 				<div class="content-box">
 					<h5>📄</h5>
-					<p style="white-space: pre-wrap;" th:utext="${postMap.content}"></p>
+					<p style="white-space: pre-wrap;" th:text="${postMap.content}"></p>
 			
 					<!-- 이미지 파일을 본문 아래에 표시 (최대 크기 조정) -->
 					<div th:each="file : ${fileList}" th:if="${file.fileName.endsWith('.jpg') or file.fileName.endsWith('.png') or file.fileName.endsWith('.gif')}">
