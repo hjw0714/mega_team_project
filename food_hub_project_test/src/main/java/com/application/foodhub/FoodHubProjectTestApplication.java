@@ -14,10 +14,10 @@ public class FoodHubProjectTestApplication {
 		SpringApplication.run(FoodHubProjectTestApplication.class, args);
 	}
 	
-	/*
+	
 	@PostConstruct
     public void setTimezone() {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-    }*/
+    }
     
 }

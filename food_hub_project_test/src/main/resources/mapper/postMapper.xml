@@ -3,7 +3,7 @@
 
 <mapper namespace="com.application.foodhub.post.PostDAO">
 
-	<resultMap id="postMap" type="com.application.foodhub.post.PostDTO">
+	<resultMap id="postMap" type="hashmap">
 			<result column="POST_ID"  	   	property="postId"/>
 			<result column="TITLE" 	   		property="title"/>
 			<result column="CATEGORY_NM"	property="cateNm"/>
