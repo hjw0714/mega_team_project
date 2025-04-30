@@ -28,14 +28,9 @@
 		            data: JSON.stringify(loginData),
 		            success: function(response) {
 		            	if (response.status === "success") {
-		            	    if (response.membershipType === "ADMIN") {
-		            	    	if (response.token) {
-		            	    		const token = encodeURIComponent(response.token);
-		            	    		window.location.replace(`http://localhost:5173/admin/dashboard?token=${token}`);
-		            	    		}
-		            	    } else {
+		            
 		            	        location.href = "/foodhub";
-		            	    }
+		            	    
 	            	    } else {
 	            	        $("#failMsg").html("<span style='color:red;'>아이디와 비밀번호를 확인하세요.</span>");
 	            	    }
