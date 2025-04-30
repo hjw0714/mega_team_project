@@ -14,24 +14,28 @@
 </style>
 <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
-	$().ready(function() {
-		$("#categoryId").change(function() {
-			let categoryId = $("#categoryId").val();
+	$().ready(function () {
+	    $("#categoryId").change(function () {
+	        let categoryId = $("#categoryId").val();
 	        let $subCategoryContainer = $(".subCategoryContainer");
 	        let $subCateId = $("#subCateId");
-
-	        let selectedSubCateId = $subCateId.val(); // 기존 선택값 저장
-
-	        if (!categoryId) {
+	
+	        if (categoryId === "") {
 	            $subCategoryContainer.hide();
 	            $subCateId.val("").find("option").hide().filter("[value='']").show();
 	        } else {
 	            $subCategoryContainer.show();
 	            $subCateId.find("option").hide().filter("[value=''], [data-category='" + categoryId + "']").show();
-	            $subCateId.val(""); // 카테고리 id 변경하면 <option value="">말머리를 선택하세요</option> 으로 자동 초기화
+	
+	            // 🔹 기존 선택값이 해당 카테고리에 속하면 유지, 아니면 초기화
+	            if (!$subCateId.find("option:selected").is(":visible")) {
+	                $subCateId.val("");
+	            }
 	        }
-		});
-	    
+	    });
+	
+	    // ✅ 초기 렌더링 시에도 필터 적용 (수정 페이지니까!)
+	    $("#categoryId").trigger("change");
 	});
 	
 	function checkTitleLength() {
@@ -116,6 +120,8 @@
 					        <option value="5" th:selected="${postMap.categoryId == 5}">중고장비거래게시판</option>
 					        <option value="6" th:selected="${postMap.categoryId == 6}">매장홍보게시판</option>
 					        <option value="7" th:selected="${postMap.categoryId == 7}">협력업체게시판</option>
+					        <!-- ADMIN만 볼 수 있도록 Thymeleaf 조건 추가 -->
+   							<option th:if="${session.membershipType == 'ADMIN'}" value="0" th:selected="${postMap.categoryId == 0}">공지사항</option>
 					    </select>
 					</div>
 					
@@ -123,6 +129,9 @@
 					    <label>말머리</label>
 					    <select id="subCateId" name="subCateId" class="form-control" required>
 					        <option value="">말머리를 선택하세요</option>
+					        <!-- ADMIN만 볼 수 있도록 Thymeleaf 조건 추가 -->
+   							<option th:if="${session.membershipType == 'ADMIN'}" value="0" data-category="0">공지</option>
+   							<option th:if="${session.membershipType == 'ADMIN'}" value="26" data-category="0">이벤트</option>
 					        <option value="1" data-category="2" th:selected="${postMap.subCateId == 1}">잡담</option>
 					        <option value="2" data-category="2" th:selected="${postMap.subCateId == 2}">일상이야기</option>
 					        <option value="3" data-category="2" th:selected="${postMap.subCateId == 3}">질문</option>
