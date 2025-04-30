@@ -685,7 +685,7 @@
 				<!-- 본문 내용 -->
 				<div class="content-box">
 					<h5>📄</h5>
-					<p><span th:utext="${postMap.content}"></span></p>
+					<p style="white-space: pre-wrap;" th:text="${postMap.content}"></p>
 			
 					<!-- 이미지 파일을 본문 아래에 표시 (최대 크기 조정) -->
 					<div th:each="file : ${fileList}" th:if="${file.fileName.endsWith('.jpg') or file.fileName.endsWith('.png') or file.fileName.endsWith('.gif')}">
