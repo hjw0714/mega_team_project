@@ -171,10 +171,8 @@
 						    const editor = event.editor;
 						    const raw = document.getElementById("rawContent").value;
 						
-						    // 🔽 줄바꿈을 <br>로 변환
-						    const formatted = raw.replace(/\n/g, "<br>");
-						
-						    editor.setData(formatted);
+						    // ❌ 불필요한 변환 제거
+						    editor.setData(raw);
 						  });
 						</script>
                         <span id="contentWarning" style="color: red; font-size: 0.9rem; display: none;">
